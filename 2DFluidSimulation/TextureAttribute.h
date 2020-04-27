@@ -51,11 +51,11 @@ inline bool TextureAttribute::Load(char const* i_filename)
 
 	if (success)
 	{
-		printf("Succeed to load texture %s", i_filename);
+		printf("Succeed to load texture %s \n", i_filename);
 	}
 	else
 	{
-		printf("Failed to load texture %s", i_filename);
+		printf("Failed to load texture %s \n", i_filename);
 	}
 
 	return success;

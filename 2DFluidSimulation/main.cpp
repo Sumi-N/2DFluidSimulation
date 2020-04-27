@@ -101,24 +101,32 @@ int main()
 	// Setup quad
 	SetUpQuad();
 
-	// Load texture
-	TextureAttribute* texture = new TextureAttribute();
-	texture->Load("../Assets/Textures/texture.png");
+	// Load graphc texture
+	TextureAttribute* graphctexture = new TextureAttribute();
+	graphctexture->Load("../Assets/Textures/texture.png");
 
-	// Create texture
-	GLuint textureid;
-	GLuint textureunit = 0;
-	glGenTextures(1, &textureid);
-	glActiveTexture(GL_TEXTURE0 + textureunit);
-	glBindTexture(GL_TEXTURE_2D, textureid);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture->pixels.data());
+	// Create graphc texture
+	GLuint graphctextureid;
+	GLuint graphctextureunit = 0;
+	glGenTextures(1, &graphctextureid);
+	glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+	glBindTexture(GL_TEXTURE_2D, graphctextureid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, graphctexture->width, graphctexture->height, 0, GL_RGB, GL_UNSIGNED_BYTE, graphctexture->pixels.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+
+
 	// Create frame buffer for velocity
+	
+	// CreateShader for advect
+	Shader* advect = new Shader();
+	advect->SetShader("../Assets/Shaders/shader.glsl.vert", "../Assets/Shaders/advect.glsl.frag");
+	advect->LoadShader();
+
 	GLuint velocityframebufferid;
 	glGenFramebuffers(1, &velocityframebufferid);
 	glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
@@ -128,9 +136,9 @@ int main()
 	glGenTextures(1, &velocitytextureid);
 	glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
 	glBindTexture(GL_TEXTURE_2D, velocitytextureid);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGB, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, graphctexture->width, graphctexture->height, 0, GL_RG, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -152,10 +160,27 @@ int main()
 	{
 		glfwPollEvents();
 
-		shader->BindShader();
-		glActiveTexture(GL_TEXTURE0 + textureunit);
-		glBindTexture(GL_TEXTURE_2D, textureid);
-		RenderQuad();
+		//glViewport(0, 0, WIDTH, HEIGHT);
+		//glBindFramebuffer(GL_FRAMEBUFFER, velocitytextureid);
+		{
+			advect->BindShader();
+			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+			glBindTexture(GL_TEXTURE_2D, graphctextureid);
+
+			//glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+			//glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+			RenderQuad();
+		}
+
+
+		//glViewport(0, 0, WIDTH, HEIGHT);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+		//{
+		//	shader->BindShader();
+		//	glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+		//	glBindTexture(GL_TEXTURE_2D, graphctextureid);
+		//	RenderQuad();
+		//}
 
 		glfwSwapBuffers(window);
 	}

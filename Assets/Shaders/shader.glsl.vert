@@ -10,6 +10,5 @@ out vec2 texcoord;
 void main()
 {
     gl_Position = vec4(model_position, 1.0);
-    //gl_Position = texture2D(texture,);
     texcoord = model_texcoord;
 }
