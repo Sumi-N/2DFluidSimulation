@@ -118,10 +118,33 @@ int main()
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Create frame buffer
+	// Create frame buffer for velocity
+	GLuint velocityframebufferid;
+	glGenFramebuffers(1, &velocityframebufferid);
+	glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
 
+	GLuint velocitytextureid;
+	GLuint velocitytextureunit = 1;
+	glGenTextures(1, &velocitytextureid);
+	glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+	glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGB, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, velocitytextureid, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_NONE);
 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Error! FrameBuffer is not complete");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	///////////////////////////////////////////////////
 
