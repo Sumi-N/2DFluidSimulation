@@ -98,6 +98,11 @@ int main()
 	shader->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/shader.glsl.frag");
 	shader->LoadShader();
 
+	// CreateShader for addforce
+	Shader* addforce = new Shader();
+	addforce->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/addforce.glsl.frag");
+	addforce->LoadShader();
+
 	// CreateShader for advect
 	Shader* advect = new Shader();
 	advect->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/advect.glsl.frag");
@@ -112,6 +117,21 @@ int main()
 	Shader* divergence = new Shader();
 	divergence->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/divergence.glsl.frag");
 	divergence->LoadShader();
+
+	// CreateShader for pressure
+	Shader* pressure = new Shader();
+	pressure->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/jacobi_pressure.glsl.frag");
+	pressure->LoadShader();
+
+	// CreateShader for gradient
+	Shader* gradient = new Shader();
+	gradient->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/gradient.glsl.frag");
+	gradient->LoadShader();
+
+	// CreateShader for boundary
+	Shader* boundary = new Shader();
+	boundary->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/boundary.glsl.frag");
+	boundary->LoadShader();
 
 	// Setup quad
 	SetUpQuad();
@@ -196,22 +216,22 @@ int main()
 
 	// Create frame buffer for pressure
 
-	GLuint pressuerframebufferid;
-	glGenFramebuffers(1, &pressuerframebufferid);
-	glBindFramebuffer(GL_FRAMEBUFFER, pressuerframebufferid);
+	GLuint pressureframebufferid;
+	glGenFramebuffers(1, &pressureframebufferid);
+	glBindFramebuffer(GL_FRAMEBUFFER, pressureframebufferid);
 
-	GLuint pressuertextureid;
+	GLuint pressuretextureid;
 	GLuint pressuertextureunit = 2;
-	glGenTextures(1, &pressuertextureid);
+	glGenTextures(1, &pressuretextureid);
 	glActiveTexture(GL_TEXTURE0 + pressuertextureunit);
-	glBindTexture(GL_TEXTURE_2D, pressuertextureid);
+	glBindTexture(GL_TEXTURE_2D, pressuretextureid);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, graphctexture->width, graphctexture->height, 0, GL_RG, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pressuertextureid, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pressuretextureid, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glReadBuffer(GL_NONE);
 
@@ -260,6 +280,18 @@ int main()
 	{
 		glfwPollEvents();
 
+		// Add force
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
+		{
+			addforce->BindShader();
+
+			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+			RenderQuad();
+		}
+
 		// Calculate advect
 		glViewport(0, 0, WIDTH, HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
@@ -276,22 +308,22 @@ int main()
 		}
 
 		// Calculate diffuse
-		glViewport(0, 0, WIDTH, HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
-		diffuse->BindShader();
-		for (int i = 0; i < 50; i++)
-		{
+		//glViewport(0, 0, WIDTH, HEIGHT);
+		//glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
+		//diffuse->BindShader();
+		//for (int i = 0; i < 50; i++)
+		//{
 
-			{
-				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-				glBindTexture(GL_TEXTURE_2D, advecttextureid);
+		//	{
+		//		glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+		//		glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
-				glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
-				glBindTexture(GL_TEXTURE_2D, advecttextureid);
+		//		glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+		//		glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
-				RenderQuad();
-			}
-		}
+		//		RenderQuad();
+		//	}
+		//}
 
 		//Calculate divergence
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -301,6 +333,51 @@ int main()
 
 			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
 			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+			RenderQuad();
+		}
+
+		// Calculate pressure
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, pressureframebufferid);
+		pressure->BindShader();
+		for (int i = 0; i < 50; i++)
+		{
+
+			{
+				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+				glBindTexture(GL_TEXTURE_2D, pressuretextureid);
+
+				glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+				glBindTexture(GL_TEXTURE_2D, divergencetextureid);
+
+				RenderQuad();
+			}
+		}
+
+		//Calculate gradient
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
+		{
+			gradient->BindShader();
+
+			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+			glBindTexture(GL_TEXTURE_2D, pressuretextureid);
+
+			glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+			RenderQuad();
+		}
+
+		// Show result
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		{
+			shader->BindShader();
+
+			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+			glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
 			RenderQuad();
 		}

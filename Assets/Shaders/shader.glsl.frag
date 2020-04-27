@@ -81,7 +81,7 @@ vec4 boundary(vec2 coords, vec2 offset, float scale, sampler2D x)
 
 void main()
 {
-    color = texture2D(velocitytexture, texcoord);
+    color = texture2D(graphictexture, texcoord);
 
     // // Get current texture
     // vec4 u = texture2D(graphictexture, texcoord);

@@ -1,14 +1,27 @@
+
 #version 430 core
 
 out vec4 color;
 
-uniform sampler2D x;
-uniform sampler2D b;
+in vec2 texcoord;
 
-uniform vec2 gridSize;
+//uniform sampler2D x;
+//uniform sampler2D b;
 
-uniform float alpha;
-uniform float beta;
+// pressuere texture
+layout(binding = 0) uniform sampler2D x;
+
+// b is for divergence
+layout(binding = 1) uniform sampler2D b;
+
+
+//uniform vec2 gridSize;
+const vec2 gridSize = vec2(1920.0f, 1080.0f);
+
+//uniform float alpha;
+//uniform float beta;
+const float alpha = - 1;
+const float beta  = 4;
 
 void main()
 {

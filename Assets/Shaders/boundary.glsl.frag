@@ -9,7 +9,7 @@ layout(binding = 0) uniform sampler2D read;
 const vec2 gridSize = vec2(1920.0f, 1080.0f);
 uniform vec2 gridOffset;
 //uniform float scale;
-cost float scale = 1.0f;
+const float scale = 1.0f;
 
 void main()
 {
