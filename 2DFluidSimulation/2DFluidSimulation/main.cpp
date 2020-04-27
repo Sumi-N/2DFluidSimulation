@@ -98,34 +98,39 @@ int main()
 	shader->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/shader.glsl.frag");
 	shader->LoadShader();
 
+	// CreateShader for advect
+	Shader* advect = new Shader();
+	advect->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/advect.glsl.frag");
+	advect->LoadShader();
+
+	// CreateShader for advect
+	Shader* diffuse = new Shader();
+	diffuse->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/jacobivector.glsl.frag");
+	diffuse->LoadShader();
+
 	// Setup quad
 	SetUpQuad();
 
-	// Load graphc texture
+	// Load graphic texture
 	TextureAttribute* graphctexture = new TextureAttribute();
 	graphctexture->Load("../../Assets/Textures/texture.png");
 
-	// Create graphc texture
+	// Create graphic texture
 	GLuint graphctextureid;
 	GLuint graphctextureunit = 0;
 	glGenTextures(1, &graphctextureid);
 	glActiveTexture(GL_TEXTURE0 + graphctextureunit);
 	glBindTexture(GL_TEXTURE_2D, graphctextureid);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, graphctexture->width, graphctexture->height, 0, GL_RGB, GL_UNSIGNED_BYTE, graphctexture->pixels.data());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-
+	///////////////////////////////////////////////////////////////////////////////
 
 	// Create frame buffer for velocity
-	
-	// CreateShader for advect
-	Shader* advect = new Shader();
-	advect->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/advect.glsl.frag");
-	advect->LoadShader();
 
 	GLuint velocityframebufferid;
 	glGenFramebuffers(1, &velocityframebufferid);
@@ -154,33 +159,75 @@ int main()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	///////////////////////////////////////////////////////////////////////////////
+
+	// Create frame buffer for pressure
+
+	GLuint pressuerframebufferid;
+	glGenFramebuffers(1, &pressuerframebufferid);
+	glBindFramebuffer(GL_FRAMEBUFFER, pressuerframebufferid);
+
+	GLuint pressuertextureid;
+	GLuint pressuertextureunit = 2;
+	glGenTextures(1, &pressuertextureid);
+	glActiveTexture(GL_TEXTURE0 + pressuertextureunit);
+	glBindTexture(GL_TEXTURE_2D, pressuertextureid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, graphctexture->width, graphctexture->height, 0, GL_RG, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pressuertextureid, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Error! FrameBuffer is not complete");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	///////////////////////////////////////////////////
 
 	while (glfwWindowShouldClose(window) == GL_FALSE)
 	{
 		glfwPollEvents();
 
-		//glViewport(0, 0, WIDTH, HEIGHT);
-		//glBindFramebuffer(GL_FRAMEBUFFER, velocitytextureid);
+		// Calculate Advec
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
 		{
 			advect->BindShader();
+
 			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
 			glBindTexture(GL_TEXTURE_2D, graphctextureid);
 
-			//glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
-			//glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+			glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
 			RenderQuad();
 		}
 
+		// Calculate propagate 
+		for (int i = 0; i < 40; i++)
+		{
+			glViewport(0, 0, WIDTH, HEIGHT);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			{
+				shader->BindShader();
 
-		//glViewport(0, 0, WIDTH, HEIGHT);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-		//{
-		//	shader->BindShader();
-		//	glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-		//	glBindTexture(GL_TEXTURE_2D, graphctextureid);
-		//	RenderQuad();
-		//}
+				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+				glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+				glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+				glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+				RenderQuad();
+			}
+		}
 
 		glfwSwapBuffers(window);
 	}

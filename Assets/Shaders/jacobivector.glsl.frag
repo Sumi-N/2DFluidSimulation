@@ -2,14 +2,17 @@
 #version 430 core
 
 out vec4 color;
+
+in vec2 texcoord;
   
 uniform sampler2D x;
 uniform sampler2D b;
 
 uniform vec2 gridSize;
 
-uniform float alpha;
-uniform float beta;
+//uniform float alpha;
+const float alpha = 0.01;
+//uniform float beta;
 
 void main()
 {

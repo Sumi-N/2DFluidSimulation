@@ -44,7 +44,7 @@ void main()
     // trace point back in time
     vec2 p = gl_FragCoord.xy - timestep * scale * texture2D(velocitytexture, uv).xy;
 
-    //color = vec4(dissipation * bilerp(graphictexture, p), 0.0, 1.0);
+    vec4 resultcolor = vec4(dissipation * bilerp(graphictexture, p), 0.0, 1.0);
 
-    color = texture2D(graphictexture, texcoord);
+    color = resultcolor;
 }
