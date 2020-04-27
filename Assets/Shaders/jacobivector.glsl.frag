@@ -13,6 +13,7 @@ uniform vec2 gridSize;
 //uniform float alpha;
 const float alpha = 0.01;
 //uniform float beta;
+const float beta = 4 + 0.01;
 
 void main()
 {

@@ -126,7 +126,36 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
+	// Create advect frame buffer
+	GLuint advectframebufferid;
+	glGenFramebuffers(1, &advectframebufferid);
+	glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
+
+	// Create graphic texture
+	GLuint advecttextureid;
+	GLuint advecttextureunit = 0;
+	glGenTextures(1, &advecttextureid);
+	glActiveTexture(GL_TEXTURE0 + advecttextureunit);
+	glBindTexture(GL_TEXTURE_2D, advecttextureid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, graphctexture->width, graphctexture->height, 0, GL_RGB, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, advectframebufferid, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Error! FrameBuffer is not complete");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	///////////////////////////////////////////////////////////////////////////////
 
@@ -146,7 +175,6 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, velocitytextureid, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -177,7 +205,6 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pressuertextureid, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -196,9 +223,9 @@ int main()
 	{
 		glfwPollEvents();
 
-		// Calculate Advec
+		// Calculate advect
 		glViewport(0, 0, WIDTH, HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
+		glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
 		{
 			advect->BindShader();
 
@@ -212,22 +239,22 @@ int main()
 		}
 
 		// Calculate propagate 
-		for (int i = 0; i < 40; i++)
-		{
-			glViewport(0, 0, WIDTH, HEIGHT);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			{
-				shader->BindShader();
+		//for (int i = 0; i < 40; i++)
+		//{
+		//	glViewport(0, 0, WIDTH, HEIGHT);
+		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//	{
+		//		shader->BindShader();
 
-				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-				glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+		//		glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+		//		glBindTexture(GL_TEXTURE_2D, velocitytextureid);
 
-				glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
-				glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+		//		glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+		//		glBindTexture(GL_TEXTURE_2D, velocitytextureid);
 
-				RenderQuad();
-			}
-		}
+		//		RenderQuad();
+		//	}
+		//}
 
 		glfwSwapBuffers(window);
 	}
