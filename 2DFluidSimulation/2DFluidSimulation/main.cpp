@@ -95,7 +95,7 @@ int main()
 
 	// CreateShader
 	Shader* shader = new Shader();
-	shader->SetShader("../Assets/Shaders/shader.glsl.vert", "../Assets/Shaders/shader.glsl.frag");
+	shader->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/shader.glsl.frag");
 	shader->LoadShader();
 
 	// Setup quad
@@ -103,7 +103,7 @@ int main()
 
 	// Load graphc texture
 	TextureAttribute* graphctexture = new TextureAttribute();
-	graphctexture->Load("../Assets/Textures/texture.png");
+	graphctexture->Load("../../Assets/Textures/texture.png");
 
 	// Create graphc texture
 	GLuint graphctextureid;
@@ -124,7 +124,7 @@ int main()
 	
 	// CreateShader for advect
 	Shader* advect = new Shader();
-	advect->SetShader("../Assets/Shaders/shader.glsl.vert", "../Assets/Shaders/advect.glsl.frag");
+	advect->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/advect.glsl.frag");
 	advect->LoadShader();
 
 	GLuint velocityframebufferid;
