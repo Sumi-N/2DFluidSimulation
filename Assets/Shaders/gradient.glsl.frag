@@ -1,13 +1,18 @@
-
 #version 430 core
 
 out vec4 color;
-  
-uniform sampler2D p;
-uniform sampler2D w;
 
-uniform vec2 gridSize;
-uniform float gridScale;
+in vec2 texcoord;
+
+//uniform sampler2D p;
+//uniform sampler2D w;
+layout(binding = 0) uniform sampler2D p;
+layout(binding = 1) uniform sampler2D w;
+
+//uniform vec2 gridSize;
+const vec2 gridSize = vec2(1920.0f, 1080.0f);
+//uniform float gridScale;
+const float gridScale = 1.0f;
 
 void main()
 {

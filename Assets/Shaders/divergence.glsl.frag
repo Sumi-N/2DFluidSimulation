@@ -2,10 +2,15 @@
 
 out vec4 color;
 
-uniform sampler2D velocity;
+in vec2 texcoord;
 
-uniform vec2 gridSize;
-uniform float gridScale;
+//uniform sampler2D velocity;
+layout(binding = 0) uniform sampler2D velocity;
+
+//uniform vec2 gridSize;
+const vec2 gridSize = vec2(1920.0f, 1080.0f);
+//uniform float gridScale;
+const float gridScale = 1.0f;
 
 void main()
 {

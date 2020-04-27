@@ -103,10 +103,15 @@ int main()
 	advect->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/advect.glsl.frag");
 	advect->LoadShader();
 
-	// CreateShader for advect
+	// CreateShader for diffuse
 	Shader* diffuse = new Shader();
-	diffuse->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/jacobivector.glsl.frag");
+	diffuse->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/jacobi.glsl.frag");
 	diffuse->LoadShader();
+
+	// CreateShader for divergence
+	Shader* divergence = new Shader();
+	divergence->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/divergence.glsl.frag");
+	divergence->LoadShader();
 
 	// Setup quad
 	SetUpQuad();
@@ -136,17 +141,17 @@ int main()
 
 	// Create graphic texture
 	GLuint advecttextureid;
-	GLuint advecttextureunit = 0;
+	GLuint advecttextureunit = 3;
 	glGenTextures(1, &advecttextureid);
 	glActiveTexture(GL_TEXTURE0 + advecttextureunit);
 	glBindTexture(GL_TEXTURE_2D, advecttextureid);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, graphctexture->width, graphctexture->height, 0, GL_RGB, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, graphctexture->width, graphctexture->height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, advectframebufferid, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, advecttextureid, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glReadBuffer(GL_NONE);
 
@@ -217,6 +222,38 @@ int main()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	///////////////////////////////////////////////////////////////////////////////
+
+	// Create frame buffer for divergence
+
+	GLuint divergenceframebufferid;
+	glGenFramebuffers(1, &divergenceframebufferid);
+	glBindFramebuffer(GL_FRAMEBUFFER, divergenceframebufferid);
+
+	GLuint divergencetextureid;
+	GLuint divergencetextureunit = 4;
+	glGenTextures(1, &divergencetextureid);
+	glActiveTexture(GL_TEXTURE0 + divergencetextureunit);
+	glBindTexture(GL_TEXTURE_2D, divergencetextureid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, graphctexture->width, graphctexture->height, 0, GL_RG, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, divergencetextureid, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Error! FrameBuffer is not complete");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
 	///////////////////////////////////////////////////
 
 	while (glfwWindowShouldClose(window) == GL_FALSE)
@@ -238,23 +275,35 @@ int main()
 			RenderQuad();
 		}
 
-		// Calculate propagate 
-		//for (int i = 0; i < 40; i++)
-		//{
-		//	glViewport(0, 0, WIDTH, HEIGHT);
-		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	{
-		//		shader->BindShader();
+		// Calculate diffuse
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
+		diffuse->BindShader();
+		for (int i = 0; i < 50; i++)
+		{
 
-		//		glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-		//		glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+			{
+				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+				glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
-		//		glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
-		//		glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+				glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+				glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
-		//		RenderQuad();
-		//	}
-		//}
+				RenderQuad();
+			}
+		}
+
+		//Calculate divergence
+		glViewport(0, 0, WIDTH, HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, divergenceframebufferid);
+		{
+			divergence->BindShader();
+
+			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+			RenderQuad();
+		}
 
 		glfwSwapBuffers(window);
 	}

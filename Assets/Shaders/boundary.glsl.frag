@@ -2,11 +2,14 @@
 
 out vec4 color;
 
-uniform sampler2D read;
+//uniform sampler2D read;
+layout(binding = 0) uniform sampler2D read;
 
-uniform vec2 gridSize;
+//uniform vec2 gridSize;
+const vec2 gridSize = vec2(1920.0f, 1080.0f);
 uniform vec2 gridOffset;
-uniform float scale;
+//uniform float scale;
+cost float scale = 1.0f;
 
 void main()
 {
