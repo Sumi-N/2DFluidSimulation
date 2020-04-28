@@ -15,6 +15,15 @@ GLFWwindow* window;
 unsigned int vao = 0;
 unsigned int vbo;
 
+struct MousePosition
+{
+	float x, y;
+	float oldx, oldy;
+	bool isLeftButtonPressing;
+};
+
+MousePosition mousepoint;
+
 void SetUpQuad()
 {
 	if (vao == 0)
@@ -44,6 +53,43 @@ void RenderQuad()
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+}
+
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	//printf("x position %f, y position %f \n", xpos, ypos);
+	mousepoint.oldx = mousepoint.x;
+	mousepoint.oldy = mousepoint.y;
+	mousepoint.x = (float)xpos;
+	mousepoint.y = HEIGHT - (float)ypos;
+	return;
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	{
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+		{
+			//mousestate.isRightButtonPressing = true;
+		}
+		else
+		{
+			//mousestate.isRightButtonPressing = false;
+		}
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+		{
+			mousepoint.isLeftButtonPressing = true;
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			mousepoint.isLeftButtonPressing = false;
+		}
+	}
 }
 
 int main()
@@ -91,6 +137,9 @@ int main()
 	// Set background color
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+	glfwSetCursorPosCallback(window, cursorPositionCallback);
+	glfwSetMouseButtonCallback(window, mouseButtonCallback);
+
 	///////////////////////////////////////////////////
 
 	// CreateShader
@@ -100,7 +149,7 @@ int main()
 
 	// CreateShader for addforce
 	Shader* addforce = new Shader();
-	addforce->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/addforce.glsl.frag");
+	addforce->SetShader("../../Assets/Shaders/shader.glsl.vert", "../../Assets/Shaders/splat.glsl.frag");
 	addforce->LoadShader();
 
 	// CreateShader for advect
@@ -291,20 +340,39 @@ int main()
 		RenderQuad();
 	}
 
+
+
+
+
 	while (glfwWindowShouldClose(window) == GL_FALSE)
 	{
 		glfwPollEvents();
 
-		// Add force
-		glViewport(0, 0, WIDTH, HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
+		if (mousepoint.isLeftButtonPressing)
 		{
-			addforce->BindShader();
+			// Add force
+			glViewport(0, 0, WIDTH, HEIGHT);
+			glBindFramebuffer(GL_FRAMEBUFFER, velocityframebufferid);
+			{
+				addforce->BindShader();
 
-			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+				GLint loc2 = glGetUniformLocation(addforce->programid, "power");
+				if (loc2 != -1)
+				{
+					glUniform2f(loc2, mousepoint.x - mousepoint.oldx, mousepoint.y -mousepoint.oldy);
+				}
 
-			RenderQuad();
+				GLint loc = glGetUniformLocation(addforce->programid, "point");
+				if (loc != -1)
+				{
+					glUniform2f(loc, mousepoint.x, mousepoint.y);
+				}
+
+				glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+				glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+				RenderQuad();
+			}
 		}
 
 		// Calculate advect
@@ -322,7 +390,7 @@ int main()
 			RenderQuad();
 		}
 
-		// Calculate diffuse
+		////Calculate diffuse
 		//glViewport(0, 0, WIDTH, HEIGHT);
 		//glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
 		//diffuse->BindShader();
@@ -393,6 +461,9 @@ int main()
 
 			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
 			glBindTexture(GL_TEXTURE_2D, advecttextureid);
+
+			glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+			glBindTexture(GL_TEXTURE_2D, velocitytextureid);
 
 			RenderQuad();
 		}

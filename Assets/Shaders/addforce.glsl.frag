@@ -24,7 +24,7 @@ void main()
 
     if(uv.x> 0.49 &&  uv.x < 0.51 && uv.y> 0.49 && uv.y < 0.51)
     {
-        color = vec4(100, 100, 0, 1.0);
+        color = vec4(100, -100, 0, 1.0);
     }else
     {
         color = texture2D(velocitytexture, uv);

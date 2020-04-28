@@ -2,13 +2,19 @@
 
 out vec4 color;
 
-uniform sampler2D read;
+in vec2 texcoord;
 
-uniform vec2 gridSize;
+//uniform sampler2D read;
+layout(binding = 0) uniform sampler2D read;
 
-uniform vec3 color;
+//uniform vec2 gridSize;
+const vec2 gridSize = vec2(1920.0, 1080.0);
+
+uniform vec2 power;
+
 uniform vec2 point;
-uniform float radius;
+//uniform float radius;
+const float radius = 2.0f;
 
 float gauss(vec2 p, float r)
 {
@@ -18,8 +24,10 @@ float gauss(vec2 p, float r)
 void main()
 {
     vec2 uv = gl_FragCoord.xy / gridSize.xy;
-    vec3 base = texture2D(read, uv).xyz;
+    vec2 base = texture2D(read, uv).xy;
     vec2 coord = point.xy - gl_FragCoord.xy;
-    vec3 splat = color * gauss(coord, gridSize.x * radius);
-    color = vec4(base + splat, 1.0);
+    vec2 splat = vec2(0, 0);
+    splat = power * gauss(coord, gridSize.x * radius);
+    color = vec4(base + splat, 0.0, 1.0);
+    //color = vec4(base, 0.0 ,1.0);
 }

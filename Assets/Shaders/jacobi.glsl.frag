@@ -12,10 +12,10 @@ layout(binding = 1) uniform sampler2D b;
 const vec2 gridSize = vec2(1920.0f, 1080.0f);
 
 //uniform float alpha;
-const float alpha = 1 / (0.01 * 50);
+const float alpha = 1 / (0.1 * 50);
 //const float alpha = 0;
 //uniform float beta;
-const float beta = 4 + 1 / ( 0.01 * 50);
+const float beta = 4 + 1 / ( 0.1 * 50);
 //const float beta = 4;
 
 void main()
