@@ -187,7 +187,7 @@ int main()
 
 	// Load graphic texture
 	TextureAttribute* graphctexture = new TextureAttribute();
-	graphctexture->Load("../../Assets/Textures/texture.png");
+	graphctexture->Load("../../Assets/Textures/thumb-1920-692072.png");
 
 	// Create graphic texture
 	GLuint graphctextureid;
