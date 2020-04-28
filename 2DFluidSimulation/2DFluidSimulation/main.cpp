@@ -276,6 +276,21 @@ int main()
 
 	///////////////////////////////////////////////////
 
+	// write texture to advect frame buffer once
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, advectframebufferid);
+	{
+		advect->BindShader();
+
+		glActiveTexture(GL_TEXTURE0 + graphctextureunit);
+		glBindTexture(GL_TEXTURE_2D, graphctextureid);
+
+		glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
+		glBindTexture(GL_TEXTURE_2D, velocitytextureid);
+
+		RenderQuad();
+	}
+
 	while (glfwWindowShouldClose(window) == GL_FALSE)
 	{
 		glfwPollEvents();
@@ -299,7 +314,7 @@ int main()
 			advect->BindShader();
 
 			glActiveTexture(GL_TEXTURE0 + graphctextureunit);
-			glBindTexture(GL_TEXTURE_2D, graphctextureid);
+			glBindTexture(GL_TEXTURE_2D, advecttextureid);
 
 			glActiveTexture(GL_TEXTURE0 + velocitytextureunit);
 			glBindTexture(GL_TEXTURE_2D, velocitytextureid);

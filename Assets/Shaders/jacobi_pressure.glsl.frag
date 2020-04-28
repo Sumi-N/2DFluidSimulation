@@ -10,7 +10,6 @@ in vec2 texcoord;
 
 // pressuere texture
 layout(binding = 0) uniform sampler2D x;
-
 // b is for divergence
 layout(binding = 1) uniform sampler2D b;
 
