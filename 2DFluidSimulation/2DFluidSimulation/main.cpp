@@ -17,8 +17,8 @@ unsigned int vbo;
 
 struct MousePosition
 {
-	float x, y;
-	float oldx, oldy;
+	float x = 0, y = 0;
+	float oldx = 0, oldy = 0;
 	bool isLeftButtonPressing;
 };
 
